@@ -1,5 +1,6 @@
 package cl.lorimaralarcon.evaluacion_u3_p2.ui.composable
 
+import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,13 +35,33 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.lorimaralarcon.evaluacion_u3_p2.R
 import cl.lorimaralarcon.evaluacion_u3_p2.data.Solicitud
 import cl.lorimaralarcon.evaluacion_u3_p2.ui.ListaSolicitudesViewModel
+import coil.compose.AsyncImage
 import java.time.LocalDate
 
 @Composable
 fun PantallaFormSolicitud(
     vmListaSolicitudes: ListaSolicitudesViewModel = viewModel(factory = ListaSolicitudesViewModel.Factory)
 ) {
+    var fotoFrontalOk by rememberSaveable { mutableStateOf(false)}
+    var fotoTraseraOk by rememberSaveable { mutableStateOf(false)}
+    var fotoUriFrontal by rememberSaveable { mutableStateOf<Uri?>(null)}
+    var fotoUriTrasera by rememberSaveable { mutableStateOf<Uri?>(null)}
     val contexto = LocalContext.current
+
+    val lanzadorfotoFrontal = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = {
+            fotoFrontalOk = it
+        })
+
+    val lanzadorfotoTrasera = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = {
+            fotoTraseraOk = it
+        })
+
+
+
     var mensajeUbicacion by rememberSaveable { mutableStateOf("Ubicación no obtenida") }
 
     var nombreCompleto by rememberSaveable { mutableStateOf("") }
@@ -126,12 +147,11 @@ fun PantallaFormSolicitud(
             Text("Lat: ${it.latitude} | Long: ${it.longitude}")
         }
         Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = { }
+        Button(onClick = {
+            fotoUriFrontal = archivoPublicoFoto(contexto,"fotocedulafrontal.jpg")
+            lanzadorfotoFrontal.launch(fotoUriFrontal)
+        }
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
                 Image(
                     painter = painterResource(id = R.drawable.photo_camera),
                     contentDescription = null,
@@ -141,17 +161,20 @@ fun PantallaFormSolicitud(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Cédula Frontal")
-
             }
-        }
+            if (fotoFrontalOk) {
+                AsyncImage(
+                    model = fotoUriFrontal,
+                    contentDescription = "fotofrontal",
+                    modifier = Modifier.size(50.dp))
+            }
+
         Spacer(modifier = Modifier.height(5.dp))
         Button(onClick = {
+            fotoUriTrasera = archivoPublicoFoto(contexto,"fotocedulatrasera.jpg")
+            lanzadorfotoTrasera.launch(fotoUriTrasera)
         }
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
                 Image(
                     painter = painterResource(id = R.drawable.photo_camera),
                     contentDescription = null,
@@ -162,6 +185,11 @@ fun PantallaFormSolicitud(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Cédula Trasera")
             }
+            if (fotoTraseraOk) {
+                AsyncImage(
+                    model = fotoUriTrasera,
+                    contentDescription = "fototrasera",
+                    modifier = Modifier.size(50.dp))
         }
         Spacer(modifier = Modifier.height(30.dp))
         Button(onClick = {
@@ -176,8 +204,8 @@ fun PantallaFormSolicitud(
                     telefono,
                     vmListaSolicitudes.ubicacion?.latitude ?: 0.0,
                     vmListaSolicitudes.ubicacion?.longitude ?: 0.0,
-                    "",
-                    "",
+                    fotoUriFrontal.toString(),
+                    fotoUriTrasera.toString(),
                     LocalDate.now()
                 )
             )

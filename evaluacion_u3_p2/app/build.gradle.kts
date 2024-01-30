@@ -61,6 +61,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // Google Play Services for Location
     implementation("com.google.android.gms:play-services-location:21.0.1")
     // nos permite convertir la función de la ubicación para uso con Corrutinas
